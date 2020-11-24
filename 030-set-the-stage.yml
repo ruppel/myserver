@@ -1,0 +1,11 @@
+- name: Set the stage
+  hosts: target
+  become: yes
+  roles:
+    - hostname-set
+    - debian-sources-enhanced
+    - ansible-python-tools
+    - update-upgrade
+    - restart-server
+    - change-to-bash
+    - sendmail-disabled

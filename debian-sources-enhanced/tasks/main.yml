@@ -1,0 +1,17 @@
+- name: Add contrib and non-free to debian sources
+  lineinfile:
+    path: /etc/apt/sources.list
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backrefs: yes
+  loop:
+    - line: 'deb \1 buster main contrib non-free'
+      regexp: '^\s*deb\s+(\S+)\s+buster\s+main(.*)'
+    - line: 'deb-src \1 buster main contrib non-free'
+      regexp: '^\s*deb-src\s+(\S+)\s+buster\s+main(.*)'
+    - line: 'deb \1 buster/updates main contrib non-free'
+      regexp: '^\s*deb\s+(\S+)\s+buster/updates\s+main(.*)'
+    - line: 'deb-src \1 buster/updates main contrib non-free'
+      regexp: '^\s*deb-src\s+(\S+)\s+buster/updates\s+main(.*)'
+  loop_control: 
+    label: "{{ item.line }}"

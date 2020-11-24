@@ -1,0 +1,10 @@
+- name: Install Ansible Python Tools
+  package:
+    name: python3-pip
+    state: present
+- name: Install Python Packages
+  pip:
+    name: "{{ item }}"
+  loop:
+    - pip
+    - pexpect
