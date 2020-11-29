@@ -11,7 +11,7 @@ This is based on Debian Buster (10) minimal installation.
 # Setup your ansible controller machine
 
 - Install ansible (minimum version 2.9).
-  See `install-ansible-controller.sh` for simple script that installs ansible on debian
+  See `010-install-ansible-controller.sh` for simple script that installs ansible on debian
 
 # Setup ansible host
 
