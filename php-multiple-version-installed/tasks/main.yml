@@ -43,6 +43,7 @@
       - php{{ php_version }}-xml
       - php{{ php_version }}-memcache
       - php{{ php_version }}-memcached
+      - libapache2-mod-php{{ php_version }}
     state: present
 - name: Install PHP 7.3
   vars:
@@ -74,6 +75,7 @@
       - php{{ php_version }}-xml
       - php{{ php_version }}-memcache
       - php{{ php_version }}-memcached
+      - libapache2-mod-php{{ php_version }}
     state: present
 - name: Install PHP 7.4
   vars:
@@ -105,6 +107,7 @@
       - php{{ php_version }}-xml
       - php{{ php_version }}-memcache
       - php{{ php_version }}-memcached
+      - libapache2-mod-php{{ php_version }}
     state: present
 - name: Set standard php version
   alternatives:
