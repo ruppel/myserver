@@ -1,0 +1,37 @@
+all:
+   hosts:
+      target:
+         ansible_host: 192.168.1.100
+         ansible_connection: ssh
+         ansible_port: 22399
+         ansible_user: myuser
+         ansible_python_interpreter: /usr/bin/python3
+         ansible_become_password: verysecret
+         domain: "example.com"
+         subdomain: "server1"
+         fqdn: "{{ subdomain }}.{{ domain }}"
+         adminpanel:
+            admin_password: "ThisIsMoreSecret"
+            port: "8080"
+         mail:
+            system_mail_name: "mail.{{ domain }}"
+            postmaster_email: "webmaster@{{ domain }}"
+         mysql:
+            root_password: "DBPasswordIsSecretToo"
+         mailman:
+            admin_email: "listadmin@{{ domain }}"
+            admin_password: "VeryVerySecret"
+         sslcert:
+            country: "DE"
+            province: "BaWue"
+            locality: "Stuttgart"
+            orgname: "My Org is my Castle Inc."
+            unitname: "IT"
+            commonname: "mail.{{ domain }}"
+            email: "webmaster@{{ domain }}"
+         phpmyadmin:
+            db_user: pma
+            db_password: "WhatASecret"
+         roundcube:
+            db_user: roundcube
+            db_password: "NobodyKnowsThisOne"

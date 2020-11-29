@@ -1,0 +1,7 @@
+- name: Download Let's Encrypt from web
+  get_url:
+    url: https://dl.eff.org/certbot-auto
+    dest: /usr/local/bin/certbot-auto
+    mode: "0755"
+- name: Install Let's Encrypt
+  command: /usr/local/bin/certbot-auto -n --install-only

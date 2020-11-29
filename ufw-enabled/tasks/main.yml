@@ -1,0 +1,22 @@
+- name: Install the UFW firewall
+  package:
+    name: ufw
+    state: present
+#
+# ufw is managed by ISPConfig, so there is no need to configure it here
+#
+# - name: Allow SSH Port
+#   ufw:
+#     rule: allow
+#     port: '{{ ansible_port | string }}'
+#     state: enabled
+# - name: Allow Web
+#   ufw:
+#     rule: allow
+#     name: "WWW Full"
+#     state: enabled
+# - name: Allow ISPConfig
+#   ufw:
+#     rule: allow
+#     port: "{{ adminpanel.port }}"
+#     state: enabled

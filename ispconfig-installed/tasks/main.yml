@@ -1,0 +1,50 @@
+- set_fact:
+    ispconfig_main: "ispconfig3"
+    ispconfig_tag: "3.2.1" 
+  no_log: true
+- name: create temporary ispconfig install directory
+  tempfile:
+    state: directory
+    prefix: ispconfig_
+  register: isp_dir
+- name: Get and extract ISPConfig from server
+  unarchive:
+    src: "https://git.ispconfig.org/ispconfig/{{ ispconfig_main }}/-/archive/{{ ispconfig_tag }}/{{ ispconfig_main }}-{{ ispconfig_tag }}.tar.gz"
+    dest: "{{ isp_dir.path }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+- name: Configure ISPConfig
+  expect:
+    chdir: "/{{ isp_dir.path }}/install"
+    command: php -q install.php
+    echo: yes
+    timeout: 120
+    responses:
+      (.*)Select language \(en,de\)(.*): ""
+      (.*)Installation mode \(standard,expert\)(.*): ""
+      (.*)Full qualified hostname \(FQDN\) of the server, eg server1\.domain\.tld(.*): ""
+      (.*)MySQL server hostname(.*): ""
+      (.*)MySQL server port(.*): ""
+      (.*)MySQL root username(.*): ""
+      (.*)MySQL root password(.*): "{{ mysql.root_password }}"
+      (.*)MySQL database to create(.*): ""
+      (.*)MySQL charset(.*): ""
+      (.*)Country Name \(2 letter code\)(.*): "{{ sslcert.country }}"
+      (.*)State or Province Name \(full name\)(.*): "{{ sslcert.province }}"
+      (.*)Locality Name \(eg, city\)(.*): "{{ sslcert.locality }}"
+      (.*)Organization Name \(eg, company\)(.*): "{{ sslcert.orgname }}"
+      (.*)Organizational Unit Name \(eg, section\)(.*): "{{ sslcert.unitname }}"
+      (.*)Common Name \(e\.g\. server FQDN or YOUR name\)(.*): "{{ sslcert.commonname }}"
+      (.*)Email Address(.*): "{{ sslcert.email }}"
+      (.*)ISPConfig Port(.*): "{{ adminpanel.port }}"
+      (.*)Admin password(.*): "{{ adminpanel.admin_password }}"
+      (.*)Re-enter admin password(.*): "{{ adminpanel.admin_password }}"
+      (.*)Do you want a secure \(SSL\) connection to the ISPConfig web interface \(y,n\)(.*): "y"
+      (.*)A challenge password(.*): ""
+      (.*)An optional company name(.*): ""
+      (.*)Symlink ISPConfig SSL certs to Postfix\? \(y,n\)(.*): "y"
+      (.*)Symlink ISPConfig SSL certs to Pure-FTPd\? Creating dhparam file may take some time\. \(y,n\)(.*): "y"
+- name: Remove temporary files
+  file:
+    path: "{{ isp_dir.path }}"
+    state: absent

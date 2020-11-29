@@ -1,0 +1,74 @@
+- name: Install PureFTPd and Quota
+  package:
+    name:
+      - pure-ftpd-common
+      - pure-ftpd-mysql
+      - quota
+      - quotatool
+    state: present
+- name: Create the dhparam file for pure-ftpd
+  command: openssl dhparam -out /etc/ssl/private/pure-ftpd-dhparams.pem 2048
+- name: Configure pure-ftpd
+  lineinfile:
+    path: /etc/default/pure-ftpd-common
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - name: Set start mode to standalone
+      regexp: '^STANDALONE_OR_INETD\s*=(.*)'
+      line: STANDALONE_OR_INETD=standalone
+    - name: Set virtualchroot to true
+      regexp: '^VIRTUALCHROOT\s*=(.*)'
+      line: VIRTUALCHROOT=true
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Allow FTP and TLS sessions
+  copy:
+    content: "1"
+    dest: /etc/pure-ftpd/conf/TLS
+    mode: "0644"
+- name: Create a directory for the certificate
+  file:
+    path: /etc/ssl/private
+    state: directory
+    mode: "0710"
+- name: Generate a Self Signed OpenSSL certificate
+  # Could also be made with openssl_certificate
+  # But I'm too dump for this
+  expect:
+    command: openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
+    echo: yes
+    timeout: 15
+    responses:
+      (.*)Country Name \(2 letter code\)(.*): "{{ sslcert.country }}"
+      (.*)State or Province Name \(full name\)(.*): "{{ sslcert.province }}"
+      (.*)Locality Name \(eg, city\)(.*): "{{ sslcert.locality }}"
+      (.*)Organization Name \(eg, company\)(.*): "{{ sslcert.orgname }}"
+      (.*)Organizational Unit Name \(eg, section\)(.*): "{{ sslcert.unitname }}"
+      (.*)Common Name \(e\.g\. server FQDN or YOUR name\)(.*): "{{ sslcert.commonname }}"
+      (.*)Email Address(.*): "{{ sslcert.email }}"
+- name: Change the permissions of the SSL certificate
+  file:
+    path: /etc/ssl/private/pure-ftpd.pem
+    mode: "0600"
+- name: Restart PureFTPd
+  service:
+    name: pure-ftpd-mysql
+    state: restarted
+- name: Add quota to filesystem table
+  mount:
+    name: "{{ item.mount }}"
+    src: "{{ item.device }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.options }},usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0"
+    state: present
+  with_items: "{{ ansible_mounts }}"
+  when: item.mount == "/" and item.options.find("usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0") == -1
+- name: "Remount /"
+  mount:
+    path: /
+    state: remounted
+- name: Check Quota
+  command: quotacheck -avugm
+- name: Turn quota on
+  command: quotaon -avug

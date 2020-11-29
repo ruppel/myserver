@@ -1,0 +1,50 @@
+- name: Install Redis (for rpamd)
+  package:
+    name:
+      - redis-server
+      - lsb-release
+    state: present
+- name: Get lsb name of host
+  command: "lsb_release -c -s"
+  register: host_lsb_name
+- name: Add an Apt signing key for rspamd.com
+  apt_key:
+    url: https://rspamd.com/apt-stable/gpg.key
+    state: present
+- name: Add apt-sources to rpamd.com
+  template:
+    src: rspamd.list
+    dest: /etc/apt/sources.list.d/rspamd.list
+    mode: "0644"
+- name: "Update apt cache"
+  apt:
+    update_cache: yes
+- name: Install rspamd
+  package:
+    name: rspamd
+    state: present
+- name: Activate Redis in Rspamd configuration
+  lineinfile:
+    path: /etc/rspamd/local.d/redis.conf
+    line: servers = "127.0.0.1";
+    create: yes
+    mode: "0644"
+- name: Configure redis
+  lineinfile:
+    path: /etc/rspamd/local.d/history_redis.conf
+    line: "{{ item.line }}"
+    create: yes
+    mode: "0644"
+  loop:
+    - name: Increase the Rspamd history
+      line: "nrows = 2500;"
+    - name: Enable compression for Rspamd
+      line: "compress = true;"
+    - name: Show the subject in the history
+      line: "subject_privacy = false;"
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Restart Rspamd
+  service:
+    name: rspamd
+    state: restarted

@@ -1,0 +1,14 @@
+- name: Install Webalizer, and AWStats
+  package:
+    name:
+      - webalizer
+      - awstats
+      - geoip-database
+      - libclass-dbi-mysql-perl
+      - libtimedate-perl
+    state: present
+- name: Comment out AWStats config for cron
+  replace:
+    path: /etc/cron.d/awstats
+    regexp: '^(\s*)([^#])(.*)$'
+    replace: '\1# \2\3'

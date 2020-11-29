@@ -1,0 +1,24 @@
+- name: Install and secure packages
+  hosts: target
+  become: yes
+  roles:
+    - timesync-enabled
+    - ufw-enabled
+    - system-updating-enabled
+    - fail2ban-enabled
+    - mariadb-installed
+    - dovecot-installed
+    - postfix-installed
+    - clamav-enabled
+    - rspam-installed
+    - apache-installed
+    - php-multiple-version-installed
+    - apache-php-fcgid-installed
+    - lets-encrypt-installed
+    - mailman-installed
+    - pureftpd-quota-installed
+    - bind-dns-server-installed
+    - webalizer-awstats-installed
+    - jailkit-installed
+    - phpmyadmin-created-installed
+    - roundcube-installed

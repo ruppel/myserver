@@ -1,0 +1,12 @@
+- name: Install BIND DNS Server
+  package:
+    name:
+      - bind9
+      - dnsutils
+      - haveged
+    state: present
+- name: Enable and start the haveged Daemon
+  systemd:
+    name: haveged
+    enabled: yes
+    state: started

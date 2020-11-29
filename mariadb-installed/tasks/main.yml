@@ -1,0 +1,65 @@
+- name: Install MariaDB
+  package:
+    name:
+      - mariadb-client
+      - mariadb-server
+    state: present
+- name: We want MySQL to listen on all interfaces
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: "^bind-address           = 127.0.0.1$"
+    line: "#bind-address           = 127.0.0.1"
+- name: Is there already a mysql root password?
+  shell: grep password /etc/mysql/debian.cnf | cut -c 12- | head -n 1
+  register: result
+- name: Mysql secure installation script
+  expect:
+    command: mysql_secure_installation
+    echo: yes
+    timeout: 15
+    responses:
+      (.*)Enter current password for root \(enter for none\)(.*): "{{ result.stdout }}"
+      (.*)Set root password\? \[Y/n\](.*): "y"
+      (.*)Change the root password\? \[Y/n\](.*): "y"
+      (.*)New password(.*): "{{ mysql.root_password }}"
+      (.*)Re-enter new password(.*): "{{ mysql.root_password }}"
+      (.*)Remove anonymous users\? \[Y/n\](.*): "y"
+      (.*)Disallow root login remotely\? \[Y/n\](.*): "y"
+      (.*)Remove test database and access to it\? \[Y/n\](.*): "y"
+      (.*)Reload privilege tables now\? \[Y/n\](.*): "y"
+- name: Set the password authentication method in MariaDB to native
+  command: echo "update mysql.user set plugin = 'mysql_native_password' where user='root';" | mysql -u root -p {{ mysql.root_password }}
+- name: Set mariadb password in debian.cnf
+  replace:
+    path: /etc/mysql/debian.cnf
+    regexp: "^password = .*"
+    replace: "password = {{ mysql.root_password }}"
+- name: Enable root login
+  command: mysql --user=root --password={{ mysql.root_password }} --execute "UPDATE mysql.user SET plugin='mysql_native_password' WHERE User='root';"
+- name: Extend limit of open files
+  lineinfile:
+    path: /etc/security/limits.conf
+    line: "{ item }"
+  loop:
+    - "mysql soft nofile 65535"
+    - "mysql hard nofile 65535"
+- name: Create a directory if it does not exist
+  file:
+    path: /etc/systemd/system/mysql.service.d
+    state: directory
+    mode: "0755"
+- name: Unlimited files open for mariadb
+  blockinfile:
+    path: /etc/systemd/system/mysql.service.d/limits.conf
+    marker: "# {mark} ANSIBLE MANAGED CODE; FILE LIMITS FOR MARIADB"
+    block: |
+      [Service]
+      LimitNOFILE=infinity
+    create: yes
+    mode: "0644"
+- name: reload system daemon
+  command: systemctl daemon-reload
+- name: Restart mariadb
+  service:
+    name: mysql
+    state: restarted

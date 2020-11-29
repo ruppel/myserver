@@ -1,0 +1,30 @@
+- name: Install ClamAV
+  package:
+    name:
+      - clamav
+      - clamav-daemon
+      - daemon
+    state: present
+- name: Install archiving tools
+  package:
+    name:
+      - unzip
+      - bzip2
+      - arj
+      - nomarch
+      - lzop
+      - cabextract
+      - zip
+      - p7zip-full
+      - xz-utils
+      - lzip
+      - rar
+      - unrar-free
+    state: present
+- name: Start freshclam
+  command: freshclam
+  ignore_errors: yes
+- name: Start ClamAV service
+  service:
+    name: clamav-daemon
+    state: started

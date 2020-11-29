@@ -1,0 +1,112 @@
+- name: Install Apache with security
+  package:
+    name:
+      - apache2
+      - libapache2-mod-security2
+      - libapache2-mod-evasive
+    state: present
+- name: Adjust Security Configuration
+  lineinfile:
+    path: /etc/apache2/conf-available/security.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - name: ServerTokens to Prod
+      regexp: '^(\s*)ServerTokens(\s+)(.*)'
+      line: "ServerTokens Prod"
+    - name: ServerSignature to Off
+      regexp: '^(\s*)ServerSignature(\s+)(.*)'
+      line: "ServerSignature Off"
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Add apache modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - headers
+    - security2
+    - rewrite
+    - ssl
+    - actions
+    - include
+    - proxy
+- name: Protect against the HTTPOXY vulnerability
+  copy:
+    dest: /etc/apache2/conf-available/httpoxy.conf
+    mode: "0644"
+    content: |
+      <IfModule mod_headers.c>
+        RequestHeader unset Proxy early
+      </IfModule>
+- name: Enable httpoxy.conf for apache
+  command: a2enconf httpoxy
+- name: Enable configuration for modsecurity
+  copy:
+    src: /etc/modsecurity/modsecurity.conf-recommended
+    dest: /etc/modsecurity/modsecurity.conf
+    mode: "0644"
+    remote_src: yes
+- name: Adjust modsecurity configuration
+  lineinfile:
+    path: /etc/modsecurity/modsecurity.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    # - name: SecRuleEngine On
+    #   # This should be done after the exceptions where identified and configured
+    #   regexp: '^(\s*)SecRuleEngine(\s+)(.*)'
+    #   line: "SecRuleEngine On"
+    - name: SecRuleEngine DetectionOnly
+      # This is to identify the needed exceptions
+      # look into /var/log/apache2/modsec_audit.log
+      regexp: '^(\s*)SecRuleEngine(\s+)(.*)'
+      line: "SecRuleEngine DetectionOnly"
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Include rules for modsecurity
+  blockinfile:
+    path: /etc/modsecurity/modsecurity.conf
+    marker: "# {mark} ANSIBLE MANAGED CODE; INCLUDED RULES"
+    block: |
+      #Include /usr/share/modsecurity-crs/rules/*.conf
+- name: Enable logging for mod-evasive
+  file:
+    path: /var/log/mod_evasive
+    state: directory
+    mode: "0644"
+    owner: www-data
+    group: www-data
+- name: Adjust configuration for mod_evasive
+  lineinfile:
+    path: /etc/apache2/mods-available/evasive.conf
+    regexp: '^(\s*)(#)?{{ item.key }}(\s+)(.*)'
+    line: '\1{{ item.key }} {{ item.value }}'
+    backrefs: true
+  loop:
+    - key: "DOSHashTableSize"
+      value: "3097"
+    - key: "DOSPageCount"
+      value: "10"
+    - key: "DOSSiteCount"
+      value: "50"
+    - key: "DOSPageInterval"
+      value: "1"
+    - key: "DOSSiteInterval"
+      value: "1"
+    - key: "DOSBlockingPeriod"
+      value: "10"
+    - key: "DOSEmailNotify"
+      value: "{{ mail.postmaster_email }}"
+    - key: "DOSLogDir"
+      value: "/var/log/mod_evasive"
+  # loop_control: 
+  #   label: "{{ item.key }}"
+- name: Add apache module evasive
+  apache2_module:
+    name: evasive
+    state: present
+- name: Restart Apache service
+  service:
+    name: apache2
+    state: restarted

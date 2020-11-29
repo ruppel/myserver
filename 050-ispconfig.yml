@@ -1,0 +1,6 @@
+- name: Install and configure ISPConfig
+  hosts: target
+  become: yes
+  roles:
+    - ispconfig-installed
+

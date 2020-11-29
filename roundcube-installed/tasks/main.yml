@@ -1,0 +1,51 @@
+- name: Create database for roundcube because of installer error
+  mysql_db:
+    name: roundcube
+    state: present
+    login_user: root
+    login_password: "{{ mysql.root_password }}"
+- name: Create database user for roundcube
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql.root_password }}"
+    name: "{{ roundcube.db_user }}"
+    password: "{{ roundcube.db_password }}"
+    host: "localhost"
+    priv: "roundcube.*:ALL,GRANT"
+    state: present
+  no_log: yes
+- name: Install Roundcube
+  package:
+    name:
+      - roundcube
+      - roundcube-core
+      - roundcube-mysql
+      - roundcube-plugins
+- name: "Reconfigure roundcube-core"
+  expect:
+    command: dpkg-reconfigure -f readline roundcube-core
+    responses:
+      IMAP server\(s\) used with RoundCube:\s*: "localhost"
+      Default language:\s*: "en_US"
+      Reinstall database for roundcube\? \[yes/no\]: "yes"
+      Connection method for MySQL database of roundcube:\s*: "1"
+      MySQL database name for roundcube:\s*: "roundcube"
+      MySQL username for roundcube:\s*: "{{ roundcube.db_user }}"
+      MySQL application password for roundcube:\s*: "{{ roundcube.db_password }}"
+      Password confirmation:\s*: "{{ roundcube.db_password }}"
+      Name of the database's administrative user:\s*: "root"
+      Web server\(s\) to configure automatically:\s*: "1"
+      Should the webserver\(s\) be restarted now\? \[yes/no\]: "no"
+- name: Configure roundcube apache aliase
+  lineinfile:
+    path: /etc/apache2/conf-enabled/roundcube.conf
+    regexp: '^Alias \/{{ item }}'
+    insertbefore: '^<Directory '
+    line: 'Alias /{{ item }} /var/lib/roundcube'
+  loop:
+    - webmail
+    - roundcube
+- name: Restart Apache service
+  service:
+    name: apache2
+    state: restarted

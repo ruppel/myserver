@@ -1,0 +1,53 @@
+- name: Install Postfix
+  package:
+    name:
+      - postfix
+      - postfix-mysql
+      - postfix-doc
+      - getmail
+    state: present
+- name: Reconfigure Postfix to our needs
+  expect:
+    command: dpkg-reconfigure -f readline postfix
+    echo: yes
+    timeout: 15
+    responses:
+      (.*)General type of mail configuration(.*): "Internet Site"
+      (.*)System mail name(.*): "{{ mail.system_mail_name }}"
+      (.*)Root and postmaster mail recipient(.*): "{{ mail.postmaster_email }}"
+      (.*)Other destinations to accept mail for \(blank for none\)(.*): ""
+      (.*)Force synchronous updates on mail queue\? \[yes/no\](.*): "yes"
+      (.*)Local networks(.*): ""
+      (.*)Mailbox size limit \(bytes\)(.*): ""
+      (.*)Local address extension character(.*): ""
+      (.*)Internet protocols to use(.*): "1"
+- name: Update /etc/postfix/master.cf part 1
+  blockinfile:
+    path: /etc/postfix/master.cf
+    marker: "# {mark} PART ONE ANSIBLE MANAGED CODE"
+    insertbefore: '^#submission inet(\s+)n(\s+)-(\s+)y(\s+)-(\s+)-(\s+)smtpd$'
+    block: |
+      submission inet n       -       y       -       -       smtpd
+        -o syslog_name=postfix/submission
+        -o smtpd_tls_security_level=encrypt
+        -o smtpd_sasl_auth_enable=yes
+        -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+- name: Update /etc/postfix/master.cf part 2
+  blockinfile:
+    path: /etc/postfix/master.cf
+    marker: "# {mark} PART TWO ANSIBLE MANAGED CODE"
+    insertbefore: '^#smtps(\s+)inet(\s+)n(\s+)-(\s+)y(\s+)-(\s+)-(\s+)smtpd$'
+    block: |
+      smtps     inet  n       -       y       -       -       smtpd
+        -o syslog_name=postfix/smtps
+        -o smtpd_tls_wrappermode=yes
+        -o smtpd_sasl_auth_enable=yes
+        -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+- name: Restart postfix
+  service:
+    name: postfix
+    state: restarted
+- name: Install Postfix Greylisting
+  package:
+    name: postgrey
+    state: present

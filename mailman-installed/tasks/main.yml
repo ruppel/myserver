@@ -1,0 +1,62 @@
+- name: Install Mailman
+  package:
+    name:
+      - mailman
+    state: present
+- name: Reconfigure Mailman
+  expect:
+    command: dpkg-reconfigure -f readline mailman
+    timeout: 15
+    responses:
+      (.*)NOTE. Languages enabled on existing mailing lists are forcibly(.*): "en"
+      (.*)Languages to support(.*): "en"
+- name: Delete existing mailing list mailman
+  command: rmlist mailman
+  ignore_errors: yes
+- name: Create initial mailing mailman
+  expect:
+    command: newlist mailman
+    echo: yes
+    timeout: 15
+    responses:
+      (.*)Enter the email of the person running the list(.*): "{{ mailman.admin_email }}"
+      (.*)Initial mailman password(.*): "{{ mailman.admin_password }}"
+      (.*)Hit enter to notify mailman owner(.*): ""
+- name: Add aliases
+  lineinfile:
+    path: /etc/aliases
+    state: present
+    line: "{{ item }}"
+  loop:
+    - "## mailman mailing list"
+    - 'mailman:              "|/var/lib/mailman/mail/mailman post mailman"'
+    - 'mailman-admin:        "|/var/lib/mailman/mail/mailman admin mailman"'
+    - 'mailman-bounces:      "|/var/lib/mailman/mail/mailman bounces mailman"'
+    - 'mailman-confirm:      "|/var/lib/mailman/mail/mailman confirm mailman"'
+    - 'mailman-join:         "|/var/lib/mailman/mail/mailman join mailman"'
+    - 'mailman-leave:        "|/var/lib/mailman/mail/mailman leave mailman"'
+    - 'mailman-owner:        "|/var/lib/mailman/mail/mailman owner mailman"'
+    - 'mailman-request:      "|/var/lib/mailman/mail/mailman request mailman"'
+    - 'mailman-subscribe:    "|/var/lib/mailman/mail/mailman subscribe mailman"'
+    - 'mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"'
+- name: Let host know about the new aliases
+  command: newaliases
+- name: Restart Postfix service
+  service:
+    name: postfix
+    state: restarted
+- name: Enable the Mailman Apache configuration
+  file:
+    src: /etc/mailman/apache.conf
+    dest: /etc/apache2/conf-available/mailman.conf
+    state: link
+- name: Activate the configuration
+  command: a2enconf mailman
+- name: Restart Apache
+  service:
+    name: apache2
+    state: restarted
+- name: Start Mailman
+  service:
+    name: mailman
+    state: started

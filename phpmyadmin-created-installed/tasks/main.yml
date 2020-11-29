@@ -1,0 +1,138 @@
+- set_fact:
+    phpmyadmin_version: "4.9.0.1"
+  no_log: true
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /usr/share/phpmyadmin
+    - /etc/phpmyadmin
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: www-data
+    group: www-data
+  loop:
+    - /var/lib/phpmyadmin
+    - /var/lib/phpmyadmin/tmp
+- name: Touch htpasswd.setup file
+  file:
+    path: /etc/phpmyadmin/htpasswd.setup
+    state: touch
+    mode: "0644"
+- name: Download phpmyadmin
+  unarchive:
+    src: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_version }}/phpMyAdmin-{{ phpmyadmin_version }}-all-languages.tar.gz"
+    dest: /usr/share/phpmyadmin/
+    remote_src: yes
+    keep_newer: yes
+    extra_opts: [--strip-components=1]
+- name: Copy default config
+  copy:
+    src: /usr/share/phpmyadmin/config.sample.inc.php
+    dest: /usr/share/phpmyadmin/config.inc.php
+    mode: "0644"
+    remote_src: yes
+- name: Create random string for the cookie
+  shell: 'base64 < /dev/urandom | tr -dc A-Za-z0-9 | head -c32'
+  register: random_result
+- name: Configure blowfish and tempdir
+  lineinfile:
+    path: /usr/share/phpmyadmin/config.inc.php
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - name: Set blowfish_secret
+      regexp: '^\s*\$cfg\s*\[\s*\Sblowfish_secret\S\s*\]\s*=\s*''''(.*)'
+      line: '$cfg[''blowfish_secret''] = ''{{ random_result.stdout }}'';'
+    - name: Set temp dir
+      regexp: '^\s*\$cfg\s*\[\s*\STempDir\S\s*\]\s*=\s*''''(.*)'
+      line: '$cfg[''TempDir''] = ''/var/lib/phpmyadmin/tmp'';'
+  loop_control:
+    label: "{{ item.name }}"
+- name: Copy apache config for phpmyadmin
+  copy:
+    src: phpmyadmin.conf
+    dest: /etc/apache2/conf-available/phpmyadmin.conf
+    mode: "0644"
+- name: Enable phpmyadmin.conf for apache
+  command: a2enconf phpmyadmin
+- name: Restart Apache service
+  service:
+    name: apache2
+    state: restarted
+- name: Create and fill database phpmyadmin
+  mysql_db:
+    name: phpmyadmin
+    state: import
+    target: /usr/share/phpmyadmin/sql/create_tables.sql
+    login_user: root
+    login_password: "{{ mysql.root_password }}"
+- name: Create database user for phpmyadmin
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql.root_password }}"
+    name: "{{ phpmyadmin.db_user }}"
+    password: "{{ phpmyadmin.db_password }}"
+    host: "localhost"
+    priv: "phpmyadmin.*:ALL,GRANT"
+    state: present
+  no_log: yes
+- name: Configure mysql servers
+  lineinfile:
+    path: /usr/share/phpmyadmin/config.inc.php
+    regexp: '^\s*(\/\/)?\s*\$cfg\s*\[\s*\SServers\S\s*\]\s*\[\s*\$i\s*\]\s*\[\s*\S{{ item.name }}\S\s*\]\s*=.*;'
+    line: '$cfg[''Servers''][$i][''{{ item.name }}''] = ''{{ item.value }}'';'
+  loop:
+    - name: controlhost
+      value: localhost
+    - name: controlport
+      value: ""
+    - name: controluser
+      value: "{{ phpmyadmin.db_user }}"
+    - name: controlpass
+      value: "{{ phpmyadmin.db_password }}"
+    - name: pmadb
+      value: phpmyadmin
+    - name: bookmarktable
+      value: pma__bookmark
+    - name: relation
+      value: pma__relation
+    - name: table_info
+      value: pma__table_info
+    - name: table_coords
+      value: pma__table_coords
+    - name: pdf_pages
+      value: pma__pdf_pages
+    - name: column_info
+      value: pma__column_info
+    - name: history
+      value: pma__history
+    - name: table_uiprefs
+      value: pma__table_uiprefs
+    - name: tracking
+      value: pma__tracking
+    - name: userconfig
+      value: pma__userconfig
+    - name: recent
+      value: pma__recent
+    - name: favorite
+      value: pma__favorite
+    - name: users
+      value: pma__users
+    - name: usergroups
+      value: pma__usergroups
+    - name: navigationhiding
+      value: pma__navigationhiding
+    - name: savedsearches
+      value: pma__savedsearches
+    - name: central_columns
+      value: pma__central_columns
+    - name: designer_settings
+      value: pma__designer_settings
+    - name: export_templates
+      value: pma__export_templates

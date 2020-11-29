@@ -1,0 +1,2 @@
+deb [arch=amd64] http://rspamd.com/apt-stable/ {{ host_lsb_name.stdout }} main
+deb-src [arch=amd64] http://rspamd.com/apt-stable/ {{ host_lsb_name.stdout }} main

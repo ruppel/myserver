@@ -1,0 +1,48 @@
+- name: Set jailkit version
+  set_fact:
+    jailkit_version: "2.20"
+    jailkit_debian_compat: "5"
+  no_log: true
+- name: Install Tools to build Jailkit
+  package:
+    name:
+      - build-essential
+      - autoconf
+      - automake
+      - libtool
+      - flex
+      - bison
+      - debhelper
+      - binutils
+- name: create temporary jailkit install directory
+  tempfile:
+    state: directory
+    prefix: jailkit
+  register: jailkit_dir
+- name: Get and extract Jailkit from server
+  unarchive:
+    src: "http://olivier.sessink.nl/jailkit/jailkit-{{ jailkit_version }}.tar.gz"
+    dest: "{{ jailkit_dir.path }}"
+    remote_src: yes
+- name: Set debian compatibility
+  copy:
+    content: "{{ jailkit_debian_compat }}"
+    dest: "{{ jailkit_dir.path }}/jailkit-{{ jailkit_version }}/debian/compat"
+    mode: "0644"
+- name: Build the jailkit package
+  command:
+    cmd: ./debian/rules binary
+    chdir: "{{ jailkit_dir.path }}/jailkit-{{ jailkit_version }}"
+- name: Remove already installed jailkit
+  package:
+    name: jailkit
+    state: absent
+  ignore_errors: yes
+- name: Install Jailkit package
+  shell:
+    cmd: "dpkg -i jailkit_{{ jailkit_version }}-1_*.deb"
+    chdir: "{{ jailkit_dir.path }}"
+- name: Remove temp files
+  file:
+    path: "{{ jailkit_dir.path }}"
+    state: absent
