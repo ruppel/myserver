@@ -1,10 +1,10 @@
 - name: Install packages for php-fcgid
   package:
-    name: "{{ item }}"
+    name:
+      - libapache2-mod-fcgid
+      - apache2-suexec-pristine
     state: present
   loop:
-    - libapache2-mod-fcgid
-    - apache2-suexec-pristine
 - name: Disable mod_php
   #  community.general.apache2_module:
   apache2_module:
