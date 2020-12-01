@@ -6,9 +6,16 @@ I was kind of disappointed from ISPConfig and wanted to move to something other,
 
 By now, this is not finished!!! It's still under construction!
 
-This is based on Debian Buster (10) minimal installation.
+# Great tutorials where the scripts here are based on
+
+- https://www.howtoforge.com/perfect-server-debian-10-buster-apache-bind-dovecot-ispconfig-3-1/
+- https://www.howtoforge.com/tutorial/how-to-install-php-7-for-ispconfig-3-from-debian-packages-on-debian-8-and-9/
+- https://www.howtoforge.com/replacing-amavisd-with-rspamd-in-ispconfig/#enable-rspamd-in-ispconfig
+- The book "Rootserver unter Debian/GNU Linux Jessie" from Daniel Gestl
 
 # Setup your ansible controller machine
+
+This is based on Debian Buster (10) minimal installation.
 
 - Install ansible (minimum version 2.9).
   See `010-install-ansible-controller.sh` for simple script that installs ansible on debian
