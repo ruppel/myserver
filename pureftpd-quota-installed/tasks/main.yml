@@ -51,6 +51,11 @@
   file:
     path: /etc/ssl/private/pure-ftpd.pem
     mode: "0600"
+- name: Use passive port range because we use a firewall
+  copy:
+    content: "42210 42310"
+    dest: /etc/pure-ftpd/conf/PassivePortRange
+    mode: "0644"
 - name: Restart PureFTPd
   service:
     name: pure-ftpd-mysql

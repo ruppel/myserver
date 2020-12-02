@@ -89,6 +89,7 @@ It should return a "OK"
 - Click on `Add Firewall record`
 - Choose your server
 - Edit the TCP Ports. **WARNING Be sure to add your specified SSH Port and your ISPConfig Port**. You might want to delete some of the ports not used.
+- Be also sure that you add the PassivePortRange for pureftp (see pureftp-quota-installed/tasks/main). The default is "42210:42310"
 - Be sure that the state is `Active`
 - Click on `Save`
 - After a few seconds the firewall should be active
@@ -97,6 +98,16 @@ It should return a "OK"
 
 - You should now configure your servers and email adresses using the ISPConfig Web-UI
 - The mailadresses used in the `myinventory.yml` file should be present
+
+# DKIM and DMARC
+
+- Generate a DKIM keypair for every mail domain.
+- Copy the public key to the DNS server (if DNS is outside ISPConfig). The generated public key contain two quotes in the key. Those have to be removed.
+- Check the DKIM entry using the DKIM test service at https://www.appmaildev.com/
+- Create a DMARC record using https://easydmarc.com/tools/dmarc-record-generator
+- Add the DMARC record to your DNS
+- Again you can check th DMARC using the test service at https://www.appmaildev.com/
+- (but let the servers a little time to syncronize over the world...)
 
 # NOT YET FINISHED
 
