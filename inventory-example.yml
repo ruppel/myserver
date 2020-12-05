@@ -21,6 +21,8 @@ all:
          mailman:
             admin_email: "listadmin@{{ domain }}"
             admin_password: "VeryVerySecret"
+         fail2ban:
+            ignoreip: "127.0.0.1"
          sslcert:
             country: "DE"
             province: "BaWue"

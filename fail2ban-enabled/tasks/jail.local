@@ -4,6 +4,7 @@ destemail = {{ mail.postmaster_email }}
 sendername = fail2ban@{{ domain }}
 mta = mail
 action = %(action_mwl)s
+ignoreip = {{ fail2ban.ignoreip }}
 
 [sshd]
 enabled = true
