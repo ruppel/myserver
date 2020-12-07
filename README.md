@@ -15,12 +15,22 @@ By now, this is not finished!!! It's still under construction!
 
 # Setup your ansible controller machine
 
-This is based on Debian Buster (10) minimal installation.
+You might install ansible on your desktop computer.
+
+I prefer using the ansible docker image `cytopia/ansible:latest-tools` and instead of calling `ansible-playbook ...` I use my script here `./docker-ansible-playbook ...`
+
+Things can be sooooo easy :-)
+
+# Setup server OS
+
+This is based on Debian Buster (10) minimal installation. There are tutorials on how to install that.
+
+# Setup ansible on the server
 
 - Install ansible (minimum version 2.9).
-  See `010-install-ansible-controller.sh` for simple script that installs ansible on debian
+  - See `010-install-ansible-controller.sh` for simple script that installs ansible on debian
 
-# Setup ansible host
+# Enable server user to do sudo and use ssh public/private key
 
 - Have a non-root user on the host, who is allowed to call `sudo`
   (On Ubuntu `adduser username`, give password and data and do a `usermod -aG sudo username`)
