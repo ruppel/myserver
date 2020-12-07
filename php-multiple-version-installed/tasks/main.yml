@@ -20,13 +20,14 @@
     name:
       - php{{ php_version }}
       - php{{ php_version }}-cli
+      - php{{ php_version }}-bz2
       - php{{ php_version }}-cgi
       - php{{ php_version }}-fpm
       - php{{ php_version }}-gd
       - php{{ php_version }}-mysql
       - php{{ php_version }}-imap
       - php{{ php_version }}-curl
-      # - php{{ php_version }}-intl
+      - php{{ php_version }}-intl
       # - php{{ php_version }}-pspell
       # - php{{ php_version }}-recode
       # - php{{ php_version }}-sqlite3
@@ -51,13 +52,14 @@
     name:
       - php{{ php_version }}
       - php{{ php_version }}-cli
+      - php{{ php_version }}-bz2
       - php{{ php_version }}-cgi
       - php{{ php_version }}-fpm
       - php{{ php_version }}-gd
       - php{{ php_version }}-mysql
       - php{{ php_version }}-imap
       - php{{ php_version }}-curl
-      # - php{{ php_version }}-intl
+      - php{{ php_version }}-intl
       # - php{{ php_version }}-pspell
       # - php{{ php_version }}-recode
       # - php{{ php_version }}-sqlite3
@@ -82,13 +84,14 @@
     name:
       - php{{ php_version }}
       - php{{ php_version }}-cli
+      - php{{ php_version }}-bz2
       - php{{ php_version }}-cgi
       - php{{ php_version }}-fpm
       - php{{ php_version }}-gd
       - php{{ php_version }}-mysql
       - php{{ php_version }}-imap
       - php{{ php_version }}-curl
-      # - php{{ php_version }}-intl
+      - php{{ php_version }}-intl
       # - php{{ php_version }}-pspell
       # - php{{ php_version }}-sqlite3
       # - php{{ php_version }}-tidy
