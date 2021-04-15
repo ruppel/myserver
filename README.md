@@ -4,7 +4,9 @@ This is an evolution from https://github.com/ruppel/SecureServerWithAnsible.
 
 I was kind of disappointed from ISPConfig and wanted to move to something other, but came back... 'cause ISPConfig is still the best for me.
 
-By now, this is not finished!!! It's still under construction!
+These are the scripts that I used (and use) to configure my running web and mail server.
+Take them as a blueprint for your needs.
+Do not blindly clone them and start. Having a web and mail server in the internet needs that you understand what you are doing!!
 
 # Great tutorials where the scripts here are based on
 
@@ -119,8 +121,13 @@ It should return a "OK"
 - Again you can check th DMARC using the test service at https://www.appmaildev.com/
 - (but let the servers a little time to syncronize over the world...)
 
-# NOT YET FINISHED
+# Secure the server
 
-There are some problems open:
+- `ansible-playbook -i myinventory.yml 060-rest.yml`
+  This will secure your ssh service (no root login, only allow login using private/public key), enable rootkit-hunter, logwatch and forward all mails to local root to your webmaster mail account.
 
-- phpmyadmin and roundcube are not working. The php code doesn't get interpreted.
+# Use docker apps
+
+As I installed nextcloud (outside the ansible world using ISPConfig and SSH), I also wanted to install OnlyOffice. I liked to run this inside docker, so we need to install this...
+- `ansible-playbook -i myinventory.yml 070-docker-apps.yml`
+
