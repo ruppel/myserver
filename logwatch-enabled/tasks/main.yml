@@ -1,0 +1,13 @@
+- name: Logwatch has to be present
+  package:
+    name: logwatch
+    state: present
+- name: Local config of logwatch
+  blockinfile:
+    path: /etc/logwatch/conf/logwatch.conf
+    create: yes
+    mode: "0644"
+    block: |
+      MailTo = {{ mail.postmaster_email }}
+      MailFrom = {{ mail.postmaster_email }}
+      Detail = Med

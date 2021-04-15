@@ -1,0 +1,8 @@
+- name: Forward root mails to webmaster
+  lineinfile:
+    path: /etc/aliases
+    state: present
+    regexp: '^\s*root:.*'
+    line: "root:        {{ mail.postmaster_email }}"
+- name: Let host know about the new alias
+  command: newaliases

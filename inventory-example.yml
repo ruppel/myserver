@@ -8,13 +8,13 @@ all:
          ansible_python_interpreter: /usr/bin/python3
          ansible_become_password: verysecret
          domain: "example.com"
-         subdomain: "server1"
+         subdomain: "server"
          fqdn: "{{ subdomain }}.{{ domain }}"
          adminpanel:
             admin_password: "ThisIsMoreSecret"
             port: "8080"
          mail:
-            system_mail_name: "mail.{{ domain }}"
+            system_mail_name: "server.{{ domain }}"
             postmaster_email: "webmaster@{{ domain }}"
          mysql:
             root_password: "DBPasswordIsSecretToo"
@@ -29,7 +29,7 @@ all:
             locality: "Stuttgart"
             orgname: "My Org is my Castle Inc."
             unitname: "IT"
-            commonname: "mail.{{ domain }}"
+            commonname: "server.{{ domain }}"
             email: "webmaster@{{ domain }}"
          phpmyadmin:
             db_user: pma
@@ -37,3 +37,11 @@ all:
          roundcube:
             db_user: roundcube
             db_password: "NobodyKnowsThisOne"
+         onlyoffice:
+            port: 7600
+            data_dir: "/opt/onlyoffice/data"
+            log_dir: "/opt/onlyoffice/log"
+            lib_dir: "/opt/onlyoffice/lib"
+            db_dir: "/opt/onlyoffice/db"
+            secret: "toptopsecretpasswort"
+            fqdn: "docs.{{ domain }}"

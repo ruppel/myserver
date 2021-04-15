@@ -1,0 +1,26 @@
+- name: Start the container
+  docker_container:
+    name: onlyoffice
+    image: onlyoffice/documentserver
+    state: started
+    restart_policy: unless-stopped
+    restart: yes
+    interactive: yes
+    tty: yes
+    detach: yes
+    ports:
+     - "{{ onlyoffice.port }}:80"
+    volumes:
+      - "{{ onlyoffice.log_dir }}:/var/log/onlyoffice"
+      - "{{ onlyoffice.data_dir }}:/var/www/onlyoffice/Data"
+      - "{{ onlyoffice.lib_dir }}:/var/lib/onlyoffice"
+      - "{{ onlyoffice.db_dir }}:/var/lib/postgresql"
+    env:
+      JWT_ENABLED: "true"
+      JWT_SECRET: "{{ onlyoffice.secret }}"
+      # LETS_ENCRYPT_DOMAIN: "{{ onlyoffice.fqdn }}"
+      # LETS_ENCRYPT_MAIL: "{{ mail.postmaster_email }}"
+- debug:
+    msg: "DON'T FORGET!! You need to configure the reverse proxy and ssl connection for only office in ispconfig!!"
+- debug:
+    msg: "DON'T FORGET!! You need to configure the connection between nextcloud and onlyoffice in nextcloud!!"

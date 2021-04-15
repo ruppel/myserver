@@ -1,0 +1,21 @@
+- name: Securing SSH
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - name: "Disable root login"
+      regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+    - name: "No Password Authentication"
+      regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication no"
+    - name: "No PAM"
+      regexp: "^UsePAM"
+      line: "UsePAM no"
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted

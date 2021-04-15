@@ -1,0 +1,6 @@
+- name: Install docker and dockerized apps
+  hosts: target
+  become: yes
+  roles:
+    - docker-installed
+    - onlyoffice-docker-installed

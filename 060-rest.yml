@@ -1,0 +1,8 @@
+- name: Install and secure packages
+  hosts: target
+  become: yes
+  roles:
+    - ssh-secured
+    - rootkit-checks-enabled
+    - logwatch-enabled
+    - forward-root-mails

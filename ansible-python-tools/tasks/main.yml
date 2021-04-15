@@ -10,3 +10,4 @@
   loop:
     - pip
     - pexpect
+    - docker

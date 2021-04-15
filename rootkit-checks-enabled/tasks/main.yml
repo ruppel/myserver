@@ -1,0 +1,58 @@
+- name: Install RKHunter
+  package:
+    name: rkhunter
+    state: present
+- name: Configure RKHunter
+  lineinfile:
+    dest: "/etc/rkhunter.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - name: "UPDATE_MIRRORS"
+      regexp: '^\s*(#)?\s*UPDATE_MIRRORS=(.*)'
+      line: "UPDATE_MIRRORS=1"
+    - name: "MIRRORS_MODE"
+      regexp: '^\s*(#)?\s*MIRRORS_MODE=(.*)'
+      line: "MIRRORS_MODE=0"
+    - name: "WEB_CMD"
+      regexp: '^\s*(#)?\s*WEB_CMD=(.*)'
+      line: "WEB_CMD=\"\""
+    - name: "MAIL-ON-WARNING"
+      regexp: '^\s*(#)?\s*MAIL-ON-WARNING=(.*)'
+      line: "MAIL-ON-WARNING=\"root\""
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Automatically run rkhunter
+  lineinfile:
+    dest: "/etc/default/rkhunter"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - name: "CRON_DAILY_RUN"
+      regexp: '^\s*(#)?\s*CRON_DAILY_RUN=(.*)'
+      line: "CRON_DAILY_RUN=\"true\""
+    - name: "CRON_DB_UPDATE"
+      regexp: '^\s*(#)?\s*CRON_DB_UPDATE=(.*)'
+      line: "CRON_DB_UPDATE=\"true\""
+    - name: "APT_AUTOGEN"
+      regexp: '^\s*(#)?\s*APT_AUTOGEN=(.*)'
+      line: "APT_AUTOGEN=\"true\""
+  loop_control: 
+    label: "{{ item.name }}"
+- name: Update system signatures for rkhunter
+  command: rkhunter --update --propupd --cronjob
+  async: 1000
+  poll: 0
+  register: async_result
+- name: 'rkhunter - check on async task'
+  async_status:
+    jid: "{{ async_result.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 200
+- name: Install ChkRootKit and Lynis
+  package:
+    name:
+      - chkrootkit
+      - lynis
+    state: present
