@@ -3,7 +3,7 @@
     name: onlyoffice
     image: onlyoffice/documentserver
     state: started
-    restart_policy: unless-stopped
+    restart_policy: always
     restart: yes
     interactive: yes
     tty: yes
