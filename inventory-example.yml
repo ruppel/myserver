@@ -45,3 +45,11 @@ all:
             db_dir: "/opt/onlyoffice/db"
             secret: "toptopsecretpasswort"
             fqdn: "docs.{{ domain }}"
+         bitwarden:
+           internal_stdport: 9322
+           internal_addport: 3012
+           admintoken: "ThisMightBeTheMostSensitivePasswordAtAll"
+         #   dbhostandport: "localhost"
+         #   dbname: "bitwardendb"
+         #   dbuser: "bitwarden"
+         #   dbpassword: "onceMoreAPassword" # Special characters need to be rewritten for URL use. See https://en.wikipedia.org/wiki/Percent-encoding#Percent-encoding_reserved_characters

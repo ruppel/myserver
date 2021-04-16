@@ -1,0 +1,31 @@
+#
+# BEWARE
+#
+# To get this really running, some work has to be done in front of this
+#
+# 1. Create a Sub-Domain in ISPConfig supporting SSL with Let's Encrypt
+# 2. Configure Reverse Proxy to the internal stdport of the docker container in ISPConfig
+# 3. Allow port in the firewall settings (using ISPCOnfig)
+#
+# I don't use the MySQL DB because it runs directly on the host system and I didn't manage the connection from
+# container to host on linux. See docker issue https://github.com/docker/for-linux/issues/264
+#
+- name: Pull bitwarden_rs image
+  docker_image:
+    name: bitwardenrs/server:latest
+    source: pull
+- name: Run bitwarden_rs container
+  docker_container:
+    name: bitwarden
+    state: started
+    image: bitwardenrs/server:latest
+    ports:
+      - "127.0.0.1:{{ bitwarden.internal_stdport }}:80"
+      # - "127.0.0.1:{{ bitwarden.internal_addport }}:3012" # no websocket connection needed
+    volumes:
+      - /bw-data/:/data/
+    env:
+      ADMIN_TOKEN: "{{ bitwarden.admintoken }}"
+      # DATABASE_URL: "mysql://{{ bitwarden.dbuser }}:{{ bitwarden.dbpassword }}@{{ bitwarden.dbhostandport }}/{{ bitwarden.dbname }}"
+    detach: yes
+    restart_policy: "always"
