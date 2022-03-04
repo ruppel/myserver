@@ -81,6 +81,8 @@ It should return a "OK"
 
 - You should now be able to access your ISPConfig panel under https://(subdomain).(domain):(adminpanel.port) as given in your inventory file.
   (For my convenience in the further documentation I reference this url to https://server.example.com:8080)
+- Ensure you have configured a website "example.com" and a subsite "server.example.com" using SSL and Let's Encrypt
+- Reload ISPConfig Web Site. You should now see, that it uses a newly generated Let's Encrypt ceretificate
 
 # Configure the installed php versions in ispconfig
 
@@ -129,5 +131,5 @@ It should return a "OK"
 # Use docker apps
 
 As I installed nextcloud (outside the ansible world using ISPConfig and SSH), I also wanted to install OnlyOffice. I liked to run this inside docker, so we need to install this...
-- `ansible-playbook -i myinventory.yml 070-docker-apps.yml`
 
+- `ansible-playbook -i myinventory.yml 070-docker-apps.yml`

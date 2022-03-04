@@ -1,0 +1,10 @@
+- name: Check if file exists
+  stat: path={{ src }}
+  register: move_file_exists
+- name: Move file
+  command:
+    argv:
+      - mv
+      - "{{ src }}"
+      - "{{ dst }}"
+  when: move_file_exists.stat.exists

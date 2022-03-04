@@ -1,0 +1,33 @@
+#
+# BEWARE
+#
+# To get this really running, some work has to be done in front of this
+#
+# 1. Create a Sub-Domain in ISPConfig supporting SSL with Let's Encrypt
+# 2. Configure Reverse Proxy to the internal stdport of the docker container in ISPConfig
+# 3. Allow port in the firewall settings (using ISPConfig)
+#
+# I don't use the MySQL DB because it runs directly on the host system and I didn't manage the connection from
+# container to host on linux. See docker issue https://github.com/docker/for-linux/issues/264
+#
+- name: Pull vaultwarden image
+  docker_image:
+    name: vaultwarden/server:latest
+    source: pull
+    # mit force_source wird immer das aktuellste image geholt und damit der container aktualisiert
+    force_source: yes
+- name: Run vaultwarden container
+  docker_container:
+    name: vaultwarden
+    state: started
+    image: vaultwarden/server:latest
+    ports:
+      - "127.0.0.1:{{ vaultwarden.internal_stdport }}:80"
+      # - "127.0.0.1:{{ vaultwarden.internal_addport }}:3012" # no websocket connection needed
+    volumes:
+      - '{{ vaultwarden.volumepath }}:/data/'
+    env:
+      ADMIN_TOKEN: "{{ vaultwarden.admintoken }}"
+      # DATABASE_URL: "mysql://{{ vaultwarden.dbuser }}:{{ vaultwarden.dbpassword }}@{{ vaultwarden.dbhostandport }}/{{ vaultwarden.dbname }}"
+    detach: yes
+    restart_policy: "always"

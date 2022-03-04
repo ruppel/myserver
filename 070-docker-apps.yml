@@ -4,4 +4,4 @@
   roles:
     - docker-installed
     - onlyoffice-docker-installed
-    - bitwardenrs-installed
+    - vaultwarden-installed

@@ -36,7 +36,7 @@
       # - php{{ php_version }}-xsl
       - php{{ php_version }}-zip
       - php{{ php_version }}-mbstring
-      # - php{{ php_version }}-soap
+      - php{{ php_version }}-soap
       # - php{{ php_version }}-opcache
       # - php{{ php_version }}-common
       - php{{ php_version }}-json
@@ -68,7 +68,7 @@
       # - php{{ php_version }}-xsl
       - php{{ php_version }}-zip
       - php{{ php_version }}-mbstring
-      # - php{{ php_version }}-soap
+      - php{{ php_version }}-soap
       # - php{{ php_version }}-opcache
       # - php{{ php_version }}-common
       - php{{ php_version }}-json
@@ -99,7 +99,7 @@
       # - php{{ php_version }}-xsl
       - php{{ php_version }}-zip
       - php{{ php_version }}-mbstring
-      # - php{{ php_version }}-soap
+      - php{{ php_version }}-soap
       # - php{{ php_version }}-opcache
       # -libonig5
       # - php{{ php_version }}-common

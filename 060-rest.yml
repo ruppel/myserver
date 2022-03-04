@@ -3,6 +3,7 @@
   become: yes
   roles:
     - ssh-secured
+    - lets-encrypt-use-certificate
     - rootkit-checks-enabled
     - logwatch-enabled
     - forward-root-mails

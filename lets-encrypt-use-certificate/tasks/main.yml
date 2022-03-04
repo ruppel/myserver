@@ -1,0 +1,141 @@
+- name: Use server certificate for ISPConfig itself ... backup old cert
+  include_role:
+    name: move-file
+  vars:
+      src: /usr/local/ispconfig/interface/ssl/{{ item }}
+      dst: /usr/local/ispconfig/interface/ssl/{{ item }}.bak
+  loop:
+    - ispserver.crt
+    - ispserver.key
+    - ispserver.pem
+
+- name: Create symbolic links for ISPConfig
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    state: link
+  loop:
+    - src: /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
+      dst: /usr/local/ispconfig/interface/ssl/ispserver.crt
+    - src: /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
+      dst: /usr/local/ispconfig/interface/ssl/ispserver.key
+
+- name: Create ISPServer.PEM file
+  raw: cat /usr/local/ispconfig/interface/ssl/ispserver.{key,crt} > /usr/local/ispconfig/interface/ssl/ispserver.pem
+
+- name: Set file access
+  file:
+    path: /usr/local/ispconfig/interface/ssl/ispserver.pem
+    mode: '0600'  
+
+- name: Backup Postfix certificates
+  include_role:
+    name: move-file
+  vars:
+      src: /etc/postfix/{{ item }}
+      dst: /etc/postfix/{{ item }}.bak
+  loop:
+    - smtpd.cert
+    - smtpd.key
+
+- name: Create symbolic links for Postfix
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    state: link
+  loop:
+    - src: /usr/local/ispconfig/interface/ssl/ispserver.crt
+      dst: /etc/postfix/smtpd.cert
+    - src: /usr/local/ispconfig/interface/ssl/ispserver.key
+      dst: /etc/postfix/smtpd.key
+
+- name: Ensure dovecot uses the certificate from postfix
+  lineinfile:
+    path: /etc/dovecot/dovecot.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - line: 'ssl_cert = </etc/postfix/smtpd.cert'
+      regexp: '^\s*ssl_cert\s+=(.*)'
+    - line: 'ssl_key = </etc/postfix/smtpd.key'
+      regexp: '^\s*ssl_key\s+=(.*)'
+  loop_control: 
+    label: "{{ item.line }}"
+
+- name: Restart postfix and dovecot
+  service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - postfix
+    - dovecot
+
+- name: Backup Pureftp certificates
+  include_role:
+    name: move-file
+  vars:
+      src: /etc/ssl/private/{{ item }}
+      dst: /etc/ssl/private/{{ item }}.bak
+  loop:
+    - pure-ftpd.pem
+
+- name: Create symbolic links for Pureftp
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    state: link
+    mode: '0600'
+  loop:
+    - src: /usr/local/ispconfig/interface/ssl/ispserver.pem
+      dst: /etc/ssl/private/pure-ftpd.pem
+
+- name: Restart pureftp
+  service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - pure-ftpd-mysql
+
+- name: Create file for update certificate
+  copy:
+    dest: /etc/init.d/le_ispc_pem.sh
+    mode: "0755"
+    content: |
+      #!/bin/sh
+      ### BEGIN INIT INFO
+      # Provides: LE ISPSERVER.PEM AUTO UPDATER
+      # Required-Start: $local_fs $network
+      # Required-Stop: $local_fs
+      # Default-Start: 2 3 4 5
+      # Default-Stop: 0 1 6
+      # Short-Description: LE ISPSERVER.PEM AUTO UPDATER
+      # Description: Update ispserver.pem automatically after ISPC LE SSL certs are renewed.
+      ### END INIT INFO
+      cd /usr/local/ispconfig/interface/ssl/
+      mv ispserver.pem ispserver.pem.bak
+      cat ispserver.{key,crt} > ispserver.pem
+      chmod 600 ispserver.pem
+      chmod 600 /etc/ssl/private/pure-ftpd.pem
+      service pure-ftpd-mysql restart
+      # service monit restart
+      service postfix restart
+      service dovecot restart
+      # service nginx restart
+
+- name: Install incron
+  package:
+    name: incron
+    state: present
+
+- name: Allow user to use incron
+  lineinfile:
+      path: /etc/incron.allow
+      line: "{{ ansible_user }}"
+
+- name: Create Incron File to react on changes from lets encrypt
+  copy:
+    dest: /etc/incron.d/cert-update.conf
+    mode: "0644"
+    content: |
+      /etc/letsencrypt/archive/{{ fqdn }}/ IN_MODIFY /etc/init.d/le_ispc_pem.sh
+

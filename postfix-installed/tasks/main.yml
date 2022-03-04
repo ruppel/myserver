@@ -51,3 +51,12 @@
   package:
     name: postgrey
     state: present
+- name: Add Smarthost credentials for postfix
+  lineinfile:
+    path: /etc/postfix/sasl_passwd
+    state: present
+    regexp: '^{{ mail.smarthost.url }}.*'
+    line: "{{ mail.smarthost.url }} {{ mail.smarthost.user }}:{{ mail.smarthost.passwd }}"
+- name: Create DB out of the credetial file for postfix
+  command: postmap /etc/postfix/sasl_passwd
+

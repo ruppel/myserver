@@ -16,13 +16,17 @@ all:
          mail:
             system_mail_name: "server.{{ domain }}"
             postmaster_email: "webmaster@{{ domain }}"
+            smarthost:
+               url: other-relay-server
+               user: usernamethere
+               passwd: verysecretpassword
          mysql:
             root_password: "DBPasswordIsSecretToo"
          mailman:
             admin_email: "listadmin@{{ domain }}"
             admin_password: "VeryVerySecret"
          fail2ban:
-            ignoreip: "127.0.0.1"
+            ignoreip: "127.0.0.0/8"
          sslcert:
             country: "DE"
             province: "BaWue"
@@ -45,10 +49,10 @@ all:
             db_dir: "/opt/onlyoffice/db"
             secret: "toptopsecretpasswort"
             fqdn: "docs.{{ domain }}"
-         bitwarden:
+         vaultwarden:
            internal_stdport: 9322
-           internal_addport: 3012
-           admintoken: "ThisMightBeTheMostSensitivePasswordAtAll"
+           admintoken: "ThisMightBeTheMostSensitivePasswordAtAll" # Note, that this does not overwrite an existing token in an existing container
+           volumepath: /opt/vaultwarden/
          #   dbhostandport: "localhost"
          #   dbname: "bitwardendb"
          #   dbuser: "bitwarden"
